@@ -1,13 +1,27 @@
 import 'package:flutter/material.dart';
 import 'package:shop_app/screens/init_screen.dart';
+import '../../auth/secureStorage.dart';
 
 class LoginSuccessScreen extends StatelessWidget {
   static String routeName = "/login_success";
 
   const LoginSuccessScreen({super.key});
 
+  Future<void> _getUserInfo() async {
+    final secureStorage = SecureStorage();
+    final token = await secureStorage.getAccessToken();
+    final isAdmin = await secureStorage.getIsAdmin();
+
+    // Aquí puedes usar el token y el estado de isAdmin según sea necesario
+    print('Token: $token');
+    print('Admin: ${isAdmin == true ? "Sí" : "No"}');
+  }
+
   @override
   Widget build(BuildContext context) {
+    // Utiliza WidgetsBinding.instance.addPostFrameCallback para obtener la información del usuario después de que se construya la pantalla
+    WidgetsBinding.instance.addPostFrameCallback((_) => _getUserInfo());
+
     return Scaffold(
       appBar: AppBar(
         leading: const SizedBox(),

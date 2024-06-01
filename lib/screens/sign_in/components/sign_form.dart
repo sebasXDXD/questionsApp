@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:shop_app/screens/login_success/login_success_screen.dart';
+import 'package:shop_app/components/custom_surfix_icon.dart';
+import 'package:shop_app/components/form_error.dart';
+import 'package:shop_app/constants.dart';
+import 'package:shop_app/helper/keyboard.dart';
 
-import '../../../components/custom_surfix_icon.dart';
-import '../../../components/form_error.dart';
-import '../../../constants.dart';
-import '../../../helper/keyboard.dart';
-import '../../login_success/login_success_screen.dart';
+import '../../../auth/secureStorage.dart'; // Asegúrate de importar tu clase SecureStorage
 
 class SignForm extends StatefulWidget {
   const SignForm({super.key});
@@ -35,6 +36,8 @@ class _SignFormState extends State<SignForm> {
       });
     }
   }
+
+  final SecureStorage secureStorage = SecureStorage(); // Instancia de SecureStorage
 
   @override
   Widget build(BuildContext context) {
@@ -118,10 +121,16 @@ class _SignFormState extends State<SignForm> {
           FormError(errors: errores),
           const SizedBox(height: 16),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               if (_formKey.currentState!.validate()) {
                 _formKey.currentState!.save();
                 KeyboardUtil.hideKeyboard(context);
+
+                // Guarda el token y el estado de isAdmin
+                await secureStorage.saveAccessToken("fijo_token");
+                await secureStorage.saveIsAdmin(true);
+
+                // Navega a la pantalla de éxito en el inicio de sesión
                 Navigator.pushNamed(context, LoginSuccessScreen.routeName);
               }
             },
