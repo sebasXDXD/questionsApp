@@ -1,16 +1,22 @@
 import 'package:flutter/material.dart';
+import '../admin_check_questions/admin_check_questions_screen.dart';
+import '../questionnaire/questionaire_screen.dart';
+import 'component/question_card.dart';
 
 class FormQuestionnaireScreen extends StatefulWidget {
   static String routeName = "/FormQuestionnaire";
-  const FormQuestionnaireScreen({super.key});
+  const FormQuestionnaireScreen({Key? key}) : super(key: key);
+
   @override
-  _FormQuestionnaireScreenState createState() => _FormQuestionnaireScreenState();
+  _FormQuestionnaireScreenState createState() =>
+      _FormQuestionnaireScreenState();
 }
 
 class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
   final TextEditingController _themeController = TextEditingController();
-  final TextEditingController _numQuestionsController = TextEditingController();
-  final List<Map<String, dynamic>> questions = [];
+  final TextEditingController _numQuestionsController =
+  TextEditingController();
+  List<Map<String, dynamic>> questions = [];
 
   @override
   void dispose() {
@@ -21,7 +27,8 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
 
   void _addQuestionnaire() {
     final theme = _themeController.text;
-    final numQuestions = int.tryParse(_numQuestionsController.text) ?? 0;
+    final numQuestions =
+        int.tryParse(_numQuestionsController.text) ?? 0;
     if (theme.isNotEmpty && numQuestions > 0) {
       final List<Map<String, dynamic>> newQuestions = [];
       for (var i = 0; i < numQuestions; i++) {
@@ -32,6 +39,7 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
         });
       }
       setState(() {
+        questions.clear();
         questions.add({
           'theme': theme,
           'questions': newQuestions,
@@ -40,36 +48,123 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
         _numQuestionsController.clear();
       });
     } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Por favor, complete todos los campos correctamente.'),
-            actions: <Widget>[
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-                child: Text('Aceptar'),
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog();
     }
   }
 
   void _saveQuestions() {
     // Aquí puedes guardar las preguntas en tu base de datos o hacer lo que necesites con ellas
-    Navigator.pop(context, questions);
+    _showSavedQuestionsDialog();
+
+    // Espera un momento antes de limpiar las preguntas
+    Future.delayed(Duration(milliseconds: 2000), () {
+      _clearQuestions();
+    });
+  }
+
+  void _showSavedQuestionsDialog() {
+    WidgetsBinding.instance!.addPostFrameCallback((_) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            insetPadding: EdgeInsets.zero,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  title: Text('Tema: ${questions[0]['theme']}'),
+                ),
+                const Divider(),
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: questions[0]['questions'].length,
+                  itemBuilder: (context, index) {
+                    final question = questions[0]['questions'][index];
+                    return ListTile(
+                      title: Text('Pregunta ${index + 1}: ${question['question']}'),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ...question['answers'].asMap().entries.map((entry) {
+                            final answerIndex = entry.key;
+                            final answer = entry.value;
+                            return Text('Respuesta ${answerIndex + 1}: $answer');
+                          }).toList(),
+                          Text('Respuesta Correcta: ${question['answers'][question['correct_answer']]}'),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+                const SizedBox(height: 10),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Aceptar'),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  void _showQuestionCard(int index) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          insetPadding: EdgeInsets.zero,
+          child: QuestionCard(
+            theme: questions[index]['theme'],
+            questions: questions[index]['questions'],
+            onQuestionChanged: (newQuestions) {
+              setState(() {
+                questions[index]['questions'] = newQuestions;
+              });
+            },
+          ),
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text(
+              'Por favor, complete todos los campos correctamente.'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Aceptar'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _clearQuestions() {
+    setState(() {
+      questions.clear();
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Crear Cuestionario'),
+        title: const Text('Crear Cuestionario'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -78,146 +173,48 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
           children: [
             TextField(
               controller: _themeController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Tema del Cuestionario',
               ),
             ),
-            SizedBox(height: 10),
+            const SizedBox(height: 10),
             TextField(
               controller: _numQuestionsController,
               keyboardType: TextInputType.number,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Número de Preguntas',
               ),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _addQuestionnaire,
-              child: Text('Agregar Cuestionario'),
+              child: const Text('Agregar Cuestionario'),
             ),
-            SizedBox(height: 20),
-            Expanded(
-              child: ListView.builder(
-                itemCount: questions.length,
-                itemBuilder: (context, index) {
-                  return QuestionCard(
-                    theme: questions[index]['theme'],
-                    questions: questions[index]['questions'],
-                    onQuestionChanged: (newQuestions) {
-                      setState(() {
-                        questions[index]['questions'] = newQuestions;
-                      });
-                    },
-                  );
-                },
+            const SizedBox(height: 20),
+            if (questions.isNotEmpty)
+              Expanded(
+                child: ListView.builder(
+                  itemCount: questions.length,
+                  itemBuilder: (context, index) {
+                    return ListTile(
+                      title: Text(questions[index]['theme']),
+                      subtitle: Text(
+                          '${questions[index]['questions'].length} preguntas'),
+                      onTap: () => _showQuestionCard(index),
+                    );
+                  },
+                ),
               ),
-            ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: questions.isNotEmpty ? _saveQuestions : null,
-              child: Text('Guardar Cuestionario'),
+              child: const Text('Guardar Cuestionario'),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class QuestionCard extends StatefulWidget {
-  final String theme;
-  final List<Map<String, dynamic>> questions;
-  final ValueChanged<List<Map<String, dynamic>>> onQuestionChanged;
-
-  const QuestionCard({
-    required this.theme,
-    required this.questions,
-    required this.onQuestionChanged,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  _QuestionCardState createState() => _QuestionCardState();
-}
-
-class _QuestionCardState extends State<QuestionCard> {
-  void _updateQuestion(int index, Map<String, dynamic> question) {
-    List<Map<String, dynamic>> updatedQuestions = List.from(widget.questions);
-    updatedQuestions[index] = question;
-    widget.onQuestionChanged(updatedQuestions);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Card(
-      margin: EdgeInsets.symmetric(vertical: 10),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text(
-              widget.theme,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: questions.isNotEmpty ? _clearQuestions : null,
+              child: const Text('Limpiar Cuestionarios'),
             ),
-            Divider(height: 20),
-            ...widget.questions.asMap().entries.map((entry) {
-              final index = entry.key;
-              final question = entry.value;
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  TextField(
-                    onChanged: (text) {
-                      _updateQuestion(index, {
-                        ...question,
-                        'question': text,
-                      });
-                    },
-                    decoration: InputDecoration(
-                      labelText: 'Pregunta ${index + 1}',
-                    ),
-                  ),
-                  ...question['answers'].asMap().entries.map((answerEntry) {
-                    final answerIndex = answerEntry.key;
-                    final answer = answerEntry.value;
-                    return Row(
-                      children: [
-                        Expanded(
-                          child: TextField(
-                            onChanged: (text) {
-                              List<String> updatedAnswers = List.from(question['answers']);
-                              updatedAnswers[answerIndex] = text;
-                              _updateQuestion(index, {
-                                ...question,
-                                'answers': updatedAnswers,
-                              });
-                            },
-                            decoration: InputDecoration(
-                              labelText: 'Respuesta ${answerIndex + 1}',
-                            ),
-                          ),
-                        ),
-                        Radio(
-                          value: answerIndex,
-                          groupValue: question['correct_answer'],
-                          onChanged: (value) {
-                            _updateQuestion(index, {
-                              ...question,
-                              'correct_answer': value,
-                            });
-                          },
-                        ),
-                      ],
-                    );
-                  }).toList(),
-                  Divider(),
-                ],
-              );
-            }).toList(),
           ],
         ),
       ),
@@ -227,6 +224,12 @@ class _QuestionCardState extends State<QuestionCard> {
 
 void main() {
   runApp(MaterialApp(
-    home: FormQuestionnaireScreen(),
+    home: const FormQuestionnaireScreen(),
+    routes: {
+      AdminCheckQuestionsScreen.routeName: (context) =>
+      const AdminCheckQuestionsScreen(),
+      QuestionnaireScreen.routeName: (context) =>
+      const QuestionnaireScreen(),
+    },
   ));
 }

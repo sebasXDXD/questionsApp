@@ -1,15 +1,9 @@
 import 'package:flutter/widgets.dart';
 import 'package:shop_app/screens/admin_check_questions/admin_check_questions_screen.dart';
-
 import 'package:shop_app/screens/questionnaire/questionaire_screen.dart';
-
 import 'screens/admin_form_questionnaire/form_quesntionnaire_screen.dart';
-import 'screens/cart/cart_screen.dart';
-import 'screens/complete_profile/complete_profile_screen.dart';
-
 import 'screens/init_screen.dart';
 import 'screens/login_success/login_success_screen.dart';
-import 'screens/otp/otp_screen.dart';
 import 'screens/profile/profile_screen.dart';
 import 'screens/sign_in/sign_in_screen.dart';
 import 'screens/sign_up/sign_up_screen.dart';
@@ -23,9 +17,6 @@ final Map<String, WidgetBuilder> routes = {
   SignInScreen.routeName: (context) => const SignInScreen(),
   LoginSuccessScreen.routeName: (context) => const LoginSuccessScreen(),
   SignUpScreen.routeName: (context) => const SignUpScreen(),
-  CompleteProfileScreen.routeName: (context) => const CompleteProfileScreen(),
-  OtpScreen.routeName: (context) => const OtpScreen(),
-  CartScreen.routeName: (context) => const CartScreen(),
   ProfileScreen.routeName: (context) => const ProfileScreen(),
   QuestionnaireScreen.routeName: (context) => const QuestionnaireScreen(),
   AdminCheckQuestionsScreen.routeName: (context) =>
