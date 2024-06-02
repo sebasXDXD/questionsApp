@@ -6,6 +6,7 @@ import 'package:shop_app/constants.dart';
 import 'package:shop_app/helper/keyboard.dart';
 
 import '../../../auth/secureStorage.dart'; // Asegúrate de importar tu clase SecureStorage
+import '../../../controller/LoginController.dart';
 
 class SignForm extends StatefulWidget {
   const SignForm({super.key});
@@ -16,7 +17,7 @@ class SignForm extends StatefulWidget {
 
 class _SignFormState extends State<SignForm> {
   final _formKey = GlobalKey<FormState>();
-  String? email;
+  String? username;
   String? password;
   bool? remember = false;
   final List<String?> errores = [];
@@ -46,31 +47,30 @@ class _SignFormState extends State<SignForm> {
       child: Column(
         children: [
           TextFormField(
-            keyboardType: TextInputType.emailAddress,
-            onSaved: (newValue) => email = newValue,
+            keyboardType: TextInputType.text,
+            onSaved: (newValue) => username = newValue,
             onChanged: (value) {
-              if (value.isNotEmpty) {
-                removeError(error: kEmailNullError);
-              } else if (emailValidatorRegExp.hasMatch(value)) {
-                removeError(error: kInvalidEmailError);
+              if (value.isNotEmpty && !value.contains(' ')) {
+                removeError(error: kUsernameNullError);
+                removeError(error: kUsernameInvalidError);
               }
               return;
             },
             validator: (value) {
               if (value!.isEmpty) {
-                addError(error: kEmailNullError);
+                addError(error: kUsernameNullError);
                 return "";
-              } else if (!emailValidatorRegExp.hasMatch(value)) {
-                addError(error: kInvalidEmailError);
+              } else if (value.contains(' ')) {
+                addError(error: kUsernameInvalidError);
                 return "";
               }
               return null;
             },
             decoration: const InputDecoration(
-              labelText: "Correo electrónico",
-              hintText: "Introduce tu correo electrónico",
+              labelText: "Nombre de usuario",
+              hintText: "Introduce tu nombre de usuario",
               floatingLabelBehavior: FloatingLabelBehavior.always,
-              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/Mail.svg"),
+              suffixIcon: CustomSurffixIcon(svgIcon: "assets/icons/User.svg"),
             ),
           ),
           const SizedBox(height: 20),
@@ -126,12 +126,19 @@ class _SignFormState extends State<SignForm> {
                 _formKey.currentState!.save();
                 KeyboardUtil.hideKeyboard(context);
 
-                // Guarda el token y el estado de isAdmin
-                await secureStorage.saveAccessToken("fijo_token");
-                await secureStorage.saveIsAdmin(true);
+                // Instancia de LoginController
+                LoginController loginController = LoginController(
+                  username: username!,
+                  password: password!,
+                  context: context,
+                );
 
-                // Navega a la pantalla de éxito en el inicio de sesión
-                Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+                // Autenticación
+                bool isAuthenticated = await loginController.authenticate();
+
+                if (isAuthenticated) {
+                  Navigator.pushNamed(context, LoginSuccessScreen.routeName);
+                }
               }
             },
             child: const Text("Continuar"),
@@ -141,3 +148,7 @@ class _SignFormState extends State<SignForm> {
     );
   }
 }
+
+// Define los nuevos errores en constants.dart
+const String kUsernameNullError = "Por favor introduce tu nombre de usuario";
+const String kUsernameInvalidError = "El nombre de usuario no debe contener espacios";

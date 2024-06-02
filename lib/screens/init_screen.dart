@@ -31,9 +31,9 @@ class _InitScreenState extends State<InitScreen> {
   }
 
   Future<void> _checkAdminStatus() async {
-    final adminStatus = await secureStorage.getIsAdmin();
+    final data = await secureStorage.getAccessTokenAndIsAdmin();
     setState(() {
-      isAdmin = adminStatus ?? false; // Actualiza el estado isAdmin
+      isAdmin = data['isAdmin'] ?? false;
     });
   }
 

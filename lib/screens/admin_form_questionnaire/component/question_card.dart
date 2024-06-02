@@ -70,8 +70,6 @@ class _QuestionCardState extends State<QuestionCard> {
                 _currentStep += 1;
               });
             } else {
-              // Finalizar y enviar datos
-              printQuestionsCreated(); // Imprimir todas las preguntas creadas
               Navigator.pop(context);
             }
           } else {
@@ -158,24 +156,5 @@ class _QuestionCardState extends State<QuestionCard> {
         }).toList(),
       ),
     );
-  }
-
-  void printQuestionsCreated() {
-    print('==================');
-    print('Todas las preguntas creadas:');
-    for (int i = 0; i < questionsCreated.length; i++) {
-      final question = questionsCreated[i];
-      print('Pregunta ${i + 1}: ${question['question']}');
-      print('Respuestas:');
-      for (int j = 0; j < question['answers'].length; j++) {
-        print('  - ${question['answers'][j]}');
-      }
-      if (question['correct_answer'] != null) {
-        print('Respuesta correcta: ${question['answers'][question['correct_answer']]}');
-      } else {
-        print('Respuesta correcta: No seleccionada');
-      }
-      print('==================');
-    }
   }
 }

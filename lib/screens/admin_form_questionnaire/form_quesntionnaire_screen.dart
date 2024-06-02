@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:shop_app/auth/secureStorage.dart';
+import 'dart:convert';
+import 'package:shop_app/model/questionnaire_model.dart';
+import 'package:shop_app/controller/QuestionController.dart';
 import '../admin_check_questions/admin_check_questions_screen.dart';
 import '../questionnaire/questionaire_screen.dart';
 import 'component/question_card.dart';
@@ -16,7 +20,23 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
   final TextEditingController _themeController = TextEditingController();
   final TextEditingController _numQuestionsController =
   TextEditingController();
+  final QuestionController questionController = QuestionController();
   List<Map<String, dynamic>> questions = [];
+
+  String? token = '';
+  final SecureStorage secureStorage = SecureStorage();
+  @override
+  void initState() {
+    super.initState();
+    _loadToken();
+  }
+
+  void _loadToken() async {
+    final tokenData = await secureStorage.getAccessTokenAndIsAdmin();
+    setState(() {
+      token = tokenData['token'] ?? '';
+    });
+  }
 
   @override
   void dispose() {
@@ -63,7 +83,25 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
   }
 
   void _showSavedQuestionsDialog() {
-    WidgetsBinding.instance!.addPostFrameCallback((_) {
+    WidgetsBinding.instance!.addPostFrameCallback((_) async {
+      final theme = questions[0]['theme'];
+      final questionList = questions[0]['questions']
+          .map<Question>((q) => Question(
+        question: q['question'],
+        answer1: q['answers'][0],
+        answer2: q['answers'][1],
+        answer3: q['answers'][2],
+        answer4: q['answers'][3],
+        correctAnswer: q['answers'][q['correct_answer']],
+      ))
+          .toList();
+
+      final questionnaire =
+      Questionnaire(theme: theme, questions: questionList);
+
+      // Usar el token almacenado en el estado del widget
+     await questionController.printQuestionnaire(questionnaire);
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -112,6 +150,8 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
       );
     });
   }
+
+
 
   void _showQuestionCard(int index) {
     showDialog(
@@ -233,3 +273,4 @@ void main() {
     },
   ));
 }
+
