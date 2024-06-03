@@ -11,37 +11,38 @@ class QuestionnaireScreen extends StatelessWidget {
     // Lista de temas y preguntas
     final List<Map<String, dynamic>> questionnaires = [
       {
+        'id': 1,
         'theme': 'Tema 1',
         'questions': [
           {
+            'id': 1,
             'question': '¿Cuál es tu color favorito?',
             'answers': ['Rojo', 'Verde', 'Azul', 'Amarillo'],
-            'selected': null, // Respuesta seleccionada
           },
           {
+            'id': 2,
             'question': '¿Cuál es tu animal favorito?',
             'answers': ['Perro', 'Gato', 'Elefante', 'Tigre'],
-            'selected': null, // Respuesta seleccionada
           },
         ],
       },
       {
+        'id': 2,
         'theme': 'Tema 2',
         'questions': [
           {
+            'id': 1,
             'question': '¿Cuál es tu película favorita?',
             'answers': ['Star Wars', 'Harry Potter', 'Avengers', 'El Señor de los Anillos'],
-            'selected': null, // Respuesta seleccionada
           },
           {
+            'id': 2,
             'question': '¿Cuál es tu comida favorita?',
             'answers': ['Pizza', 'Hamburguesa', 'Sushi', 'Ensalada'],
-            'selected': null, // Respuesta seleccionada
           },
         ],
       },
     ];
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Cuestionario"),

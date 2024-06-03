@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'dart:convert';
 
 import '../auth/secureStorage.dart';
-import '../service/LoginRoute.dart';
+import '../routes/LoginRoute.dart';
 import '../utils/Errors.dart';
 
 class LoginController {

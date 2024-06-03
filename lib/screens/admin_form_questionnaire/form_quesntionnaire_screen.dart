@@ -100,7 +100,7 @@ class _FormQuestionnaireScreenState extends State<FormQuestionnaireScreen> {
       Questionnaire(theme: theme, questions: questionList);
 
       // Usar el token almacenado en el estado del widget
-      await questionController.printQuestionnaire(questionnaire);
+      await questionController.saveQuestionnaire(questionnaire);
 
       showDialog(
         context: context,

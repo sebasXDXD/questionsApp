@@ -5,12 +5,12 @@ import '../model/questionnaire_model.dart';
 import '../model/quiestionnaire_result_model.dart';
 import '../routes/QuestionRoute.dart';
 
-class QuestionController {
+class UserQuestionController {
   final SecureStorage secureStorage;
 
-  QuestionController() : secureStorage = SecureStorage();
+  UserQuestionController() : secureStorage = SecureStorage();
 
-  Future<void>saveQuestionnaire(Questionnaire questionnaire) async {
+  Future<void> printQuestionnaire(Questionnaire questionnaire) async {
     final Map<String, dynamic> tokenData =
         await secureStorage.getAccessTokenAndIsAdmin();
     final String? _token = tokenData['token'];
@@ -31,17 +31,19 @@ class QuestionController {
     }
   }
 
-
   Future<List<QuestionnaireResult>> getQuestionnaires() async {
     try {
-      final Map<String, dynamic> tokenData = await secureStorage.getAccessTokenAndIsAdmin();
+      final Map<String, dynamic> tokenData =
+          await secureStorage.getAccessTokenAndIsAdmin();
       final String? _token = tokenData['token'];
       if (_token == null) {
         throw Exception('Token no disponible');
       }
 
-      final QuestionService questionService = QuestionService(secureStorage: FlutterSecureStorage());
-      final List<QuestionnaireResult> retrievedQuestionnaires = await questionService.getQuestionnaires();
+      final QuestionService questionService =
+          QuestionService(secureStorage: FlutterSecureStorage());
+      final List<QuestionnaireResult> retrievedQuestionnaires =
+          await questionService.getQuestionnaires();
 
       // Imprimir el resultado obtenido del servicio
       print('Retrieved Questionnaires: $retrievedQuestionnaires');
@@ -52,7 +54,4 @@ class QuestionController {
       rethrow; // Rethrow para que la excepción sea manejada en el FutureBuilder
     }
   }
-
-
-
 }

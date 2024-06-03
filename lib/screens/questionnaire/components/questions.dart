@@ -18,9 +18,44 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
         currentQuestionIndex++;
       });
     } else {
-      // Navegar a la pantalla de resultados o hacer algo al finalizar
-      Navigator.pop(context);
+      _showResultsDialog();
     }
+  }
+
+  void _showResultsDialog() {
+    final results = {
+      "idQuestionnaire": 10,
+      "answers": widget.questions.map((question) {
+        return {
+          "question_id": question['id'],
+          "user_answer": question['selected'] ?? "No answer"
+        };
+      }).toList(),
+    };
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Results"),
+          content: SingleChildScrollView(
+            child: ListBody(
+              children: [
+                Text(results.toString()),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: const Text("OK"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
