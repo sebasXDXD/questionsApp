@@ -45,8 +45,6 @@ class _AdminCheckQuestionsScreenState extends State<AdminCheckQuestionsScreen> {
         };
         questionnaireList.add(questionnaireMap);
       });
-
-      print('QuestionnairesVista: $questionnaireList');
     }).catchError((error) {
       print('Error fetching questionnaires: $error');
     });
