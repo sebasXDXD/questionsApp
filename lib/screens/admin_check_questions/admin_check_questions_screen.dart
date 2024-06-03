@@ -1,56 +1,59 @@
 import 'package:flutter/material.dart';
+import '../../controller/QuestionController.dart';
+import '../../model/quiestionnaire_result_model.dart';
 import 'components/questions_check.dart';
 
-class AdminCheckQuestionsScreen extends StatelessWidget {
+class AdminCheckQuestionsScreen extends StatefulWidget {
   static String routeName = "/AdminQuestionnaire";
 
-  const AdminCheckQuestionsScreen({super.key});
+  const AdminCheckQuestionsScreen({Key? key}) : super(key: key);
+
+  @override
+  _AdminCheckQuestionsScreenState createState() =>
+      _AdminCheckQuestionsScreenState();
+}
+
+class _AdminCheckQuestionsScreenState extends State<AdminCheckQuestionsScreen> {
+  late QuestionController _controller;
+  late Future<List<QuestionnaireResult>> questionnairesFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    callController();
+  }
+
+  Future<void> callController() async {
+    _controller = QuestionController();
+    questionnairesFuture = _controller.getQuestionnaires();
+
+    // Imprimimos el estado del future de questionnaires
+    await questionnairesFuture.then((questionnaires) {
+      List<Map<String, dynamic>> questionnaireList = [];
+      questionnaires.forEach((questionnaire) {
+        Map<String, dynamic> questionnaireMap = {
+          "userId": questionnaire.userId,
+          "questions": questionnaire.questions
+              .map((questionResult) => {
+            "question": questionResult.question,
+            "answers": questionResult.answers,
+            "selected": questionResult.selected,
+            "theme": questionResult.question,
+            "correct_answer": questionResult.correctAnswer,
+          })
+              .toList(),
+        };
+        questionnaireList.add(questionnaireMap);
+      });
+
+      print('QuestionnairesVista: $questionnaireList');
+    }).catchError((error) {
+      print('Error fetching questionnaires: $error');
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
-// Lista de temas y preguntas
-    final List<Map<String, dynamic>> questionnaires = [
-      {
-        'userId': 1,
-        'questions': [
-          {
-            'question': '¿Cuál es tu color favorito?',
-            'answers': ['Rojo', 'Verde', 'Azul', 'Amarillo'],
-            'selected': 3, // Respuesta seleccionada
-            'theme': "Tema 1",
-            'correct_answer': 0, // Índice de la respuesta correcta
-          },
-          {
-            'question': '¿Cuál es tu animal favorito?',
-            'answers': ['Perro', 'Gato', 'Elefante', 'Tigre'],
-            'selected': 1, // Respuesta seleccionada
-            'theme': "Tema 1",
-            'correct_answer': 1, // Índice de la respuesta correcta
-          },
-        ],
-      },
-      {
-        'userId': 2,
-        'questions': [
-          {
-            'question': '¿Cuál es tu película favorita?',
-            'answers': ['Star Wars', 'Harry Potter', 'Avengers', 'El Señor de los Anillos'],
-            'selected': 0, // Respuesta seleccionada
-            'theme': "Tema 2",
-            'correct_answer': 3, // Índice de la respuesta correcta
-          },
-          {
-            'question': '¿Cuál es tu comida favorita?',
-            'answers': ['Pizza', 'Hamburguesa', 'Sushi', 'Ensalada'],
-            'selected': 2, // Respuesta seleccionada
-            'theme': "Tema 2",
-            'correct_answer': 2, // Índice de la respuesta correcta
-          },
-        ],
-      },
-    ];
-
-
     return Scaffold(
       appBar: AppBar(
         title: const Text("Checkear preguntas"),
@@ -70,31 +73,50 @@ class AdminCheckQuestionsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: ListView.builder(
-                  itemCount: questionnaires.length,
-                  itemBuilder: (context, index) {
-                    final theme = questionnaires[index]['questions'][0]['theme'];
-                    final userId =  questionnaires[index]['userId'].toString();// Convertir userId a String
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: ElevatedButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => QuestionsScreen(questions: questionnaires[index]['questions']),
+                child: FutureBuilder<List<QuestionnaireResult>>(
+                  future: questionnairesFuture,
+                  builder: (context, AsyncSnapshot<List<QuestionnaireResult>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return const CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                      return const Text('No hay cuestionarios disponibles.');
+                    }
+
+                    final questionnaires = snapshot.data!;
+
+                    return ListView.builder(
+                      itemCount: questionnaires.length,
+                      itemBuilder: (context, index) {
+                        final questionnaire = questionnaires[index];
+                        final userId = questionnaire.userId.toString();
+                        final theme = '${questionnaire.questions.first.theme ?? 'Sin tema'}'; // Usamos el tema de la primera pregunta del cuestionario
+
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: ElevatedButton(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => QuestionsScreen(
+                                    questions: questionnaire.questions,
+                                  ),
+                                ),
+                              );
+                            },
+                            style: ElevatedButton.styleFrom(
+                              padding: const EdgeInsets.all(16.0),
+                              textStyle: const TextStyle(fontSize: 20),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
                             ),
-                          );
-                        },
-                        style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.all(16.0),
-                          textStyle: const TextStyle(fontSize: 20),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
+                            child: Text('$theme - Usuario: $userId'),
                           ),
-                        ),
-                        child: Text('$theme - Usuario: $userId'),
-                      ),
+                        );
+                      },
                     );
                   },
                 ),
