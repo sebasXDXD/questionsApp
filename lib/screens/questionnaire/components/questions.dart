@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
+import '../../../controller/UserQuestionController.dart';
 
 class QuestionsScreen extends StatefulWidget {
   final List<Map<String, dynamic>> questions;
+  final int questionnaireId; // Agregamos el ID del cuestionario aquí
 
-  const QuestionsScreen({required this.questions, super.key});
+  const QuestionsScreen({
+    required this.questions,
+    required this.questionnaireId,
+    Key? key,
+  }) : super(key: key);
 
   @override
   _QuestionsScreenState createState() => _QuestionsScreenState();
@@ -11,6 +17,13 @@ class QuestionsScreen extends StatefulWidget {
 
 class _QuestionsScreenState extends State<QuestionsScreen> {
   int currentQuestionIndex = 0;
+  late UserQuestionController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = UserQuestionController(); // Inicializamos el controlador aquí
+  }
 
   void _nextQuestion() {
     if (currentQuestionIndex < widget.questions.length - 1) {
@@ -24,14 +37,17 @@ class _QuestionsScreenState extends State<QuestionsScreen> {
 
   void _showResultsDialog() {
     final results = {
-      "idQuestionnaire": 10,
+      "idQuestionnaire": widget.questionnaireId, // Usamos el ID del cuestionario
       "answers": widget.questions.map((question) {
         return {
-          "question_id": question['id'],
-          "user_answer": question['selected'] ?? "No answer"
+          "id": question['id'],
+          "selected": question['selected'] ?? "No answer"
         };
       }).toList(),
     };
+
+    // Llamamos solveQuestion con los resultados
+    _controller.solveQuestion(widget.questionnaireId, results);
 
     showDialog(
       context: context,

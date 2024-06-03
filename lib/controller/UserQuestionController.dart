@@ -1,52 +1,49 @@
 import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shop_app/auth/secureStorage.dart';
-import '../model/questionnaire_model.dart';
-import '../model/quiestionnaire_result_model.dart';
-import '../routes/QuestionRoute.dart';
+import 'package:shop_app/model/userquestionnaire_model.dart';
+import '../routes/UserQuestionRoute.dart';
 
 class UserQuestionController {
   final SecureStorage secureStorage;
+  final UserQuestionRoute userQuestionRoute;
 
-  UserQuestionController() : secureStorage = SecureStorage();
+  UserQuestionController()
+      : secureStorage = SecureStorage(),
+        userQuestionRoute = UserQuestionRoute(secureStorage: FlutterSecureStorage());
 
-  Future<void> printQuestionnaire(Questionnaire questionnaire) async {
-    final Map<String, dynamic> tokenData =
-        await secureStorage.getAccessTokenAndIsAdmin();
+  Future<void> solveQuestion(int questionnaireId, Map<String, dynamic> results) async {
+    final Map<String, dynamic> tokenData = await secureStorage.getAccessTokenAndIsAdmin();
     final String? _token = tokenData['token'];
     if (_token == null) {
       print('Token no disponible');
       return;
     }
 
-    final jsonString = json.encode(questionnaire.toJson());
+    final Map<String, dynamic> formattedResults = {
+      'idQuestionnaire': questionnaireId,
+      'answers': (results['answers'] as List).map((answer) {
+        return {
+          'question_id': answer['id'],
+          'user_answer': answer['selected'],
+        };
+      }).toList(),
+    };
 
-    final QuestionService questionService =
-        QuestionService(secureStorage: FlutterSecureStorage());
-
-    try {
-      await questionService.createQuestionnaire(questionnaire);
-    } catch (e) {
-      print('Error: $e');
-    }
+    await userQuestionRoute.sendQuestionnaireResults(formattedResults);
   }
 
-  Future<List<QuestionnaireResult>> getQuestionnaires() async {
+  Future<List<Questionnaire>> getQuestionnaires() async {
     try {
       final Map<String, dynamic> tokenData =
-          await secureStorage.getAccessTokenAndIsAdmin();
+      await secureStorage.getAccessTokenAndIsAdmin();
       final String? _token = tokenData['token'];
       if (_token == null) {
         throw Exception('Token no disponible');
       }
 
-      final QuestionService questionService =
-          QuestionService(secureStorage: FlutterSecureStorage());
-      final List<QuestionnaireResult> retrievedQuestionnaires =
-          await questionService.getQuestionnaires();
-
-      // Imprimir el resultado obtenido del servicio
-      print('Retrieved Questionnaires: $retrievedQuestionnaires');
+      final List<Questionnaire> retrievedQuestionnaires =
+      await userQuestionRoute.getQuestionnaires();
 
       return retrievedQuestionnaires;
     } catch (e) {
