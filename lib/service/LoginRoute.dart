@@ -15,8 +15,6 @@ class LoginRoute {
     final apiHost = dotenv.env['QUESTION_BACKEND'];
 
     final String apiUrl = '$apiHost/login';
-    print(username);
-    print(password);
     try {
       final response = await http.post(
         Uri.parse(apiUrl),
